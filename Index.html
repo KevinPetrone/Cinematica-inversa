@@ -1,0 +1,1246 @@
+<!DOCTYPE html>
+
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cinematica Inversa in Robotica</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+        }
+
+```
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        overflow: hidden;
+    }
+    
+    .header {
+        background: linear-gradient(135deg, #2196F3, #1976D2);
+        color: white;
+        padding: 30px;
+        text-align: center;
+    }
+    
+    .content {
+        padding: 30px;
+    }
+    
+    h1 {
+        margin: 0;
+        font-size: 2.5em;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+    
+    h2 {
+        color: #1976D2;
+        border-bottom: 3px solid #2196F3;
+        padding-bottom: 10px;
+        margin-top: 40px;
+    }
+    
+    h3 {
+        color: #333;
+        margin-top: 30px;
+    }
+    
+    .math-formula {
+        background: linear-gradient(135deg, #f5f5f5, #e8e8e8);
+        padding: 15px;
+        border-radius: 10px;
+        margin: 15px 0;
+        font-family: 'Courier New', monospace;
+        border-left: 4px solid #2196F3;
+    }
+    
+    .algorithm-box {
+        background: linear-gradient(135deg, #e8f5e8, #d4f4d4);
+        padding: 20px;
+        border-radius: 10px;
+        margin: 20px 0;
+        border-left: 4px solid #4CAF50;
+    }
+    
+    .example-box {
+        background: linear-gradient(135deg, #fff3e0, #ffe0b2);
+        padding: 20px;
+        border-radius: 10px;
+        margin: 20px 0;
+        border-left: 4px solid #FF9800;
+    }
+    
+    .warning-box {
+        background: linear-gradient(135deg, #ffebee, #ffcdd2);
+        padding: 15px;
+        border-radius: 10px;
+        margin: 15px 0;
+        border-left: 4px solid #f44336;
+    }
+    
+    canvas {
+        border: 2px solid #ddd;
+        border-radius: 10px;
+        margin: 20px 0;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    
+    .interactive-section {
+        background: linear-gradient(135deg, #f0f8ff, #e6f3ff);
+        padding: 25px;
+        border-radius: 15px;
+        margin: 30px 0;
+        border: 2px solid #2196F3;
+    }
+    
+    button {
+        background: linear-gradient(135deg, #2196F3, #1976D2);
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 25px;
+        cursor: pointer;
+        font-size: 16px;
+        margin: 10px 5px;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    
+    button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+    }
+    
+    input[type="range"] {
+        width: 200px;
+        margin: 10px;
+    }
+    
+    .controls {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        margin: 20px 0;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    .section-divider {
+        height: 2px;
+        background: linear-gradient(90deg, transparent, #2196F3, transparent);
+        margin: 40px 0;
+    }
+</style>
+```
+
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Cinematica Inversa in Robotica</h1>
+            <p>Guida completa per catene cinematiche aperte e chiuse in 2D e 3D</p>
+        </div>
+
+```
+    <div class="content">
+        <h2>1. Introduzione alla Cinematica Inversa</h2>
+        <p>La <strong>cinematica inversa</strong> è il processo di determinazione delle configurazioni articolari (angoli θᵢ) necessarie per raggiungere una posizione e orientamento desiderati dell'end-effector di un robot.</p>
+        
+        <div class="math-formula">
+            <strong>Problema cinematico diretto:</strong> θ → (x, y, z, φ, ψ, ω)<br>
+            <strong>Problema cinematico inverso:</strong> (x, y, z, φ, ψ, ω) → θ
+        </div>
+        
+        <div class="warning-box">
+            <strong>Nota importante:</strong> Il problema cinematico inverso è generalmente più complesso del diretto e può avere:
+            <ul>
+                <li>Nessuna soluzione (punto irraggiungibile)</li>
+                <li>Una soluzione unica</li>
+                <li>Multiple soluzioni</li>
+                <li>Infinite soluzioni (robot ridondante)</li>
+            </ul>
+        </div>
+
+        <div class="section-divider"></div>
+
+        <h2>2. Catene Cinematiche Aperte in 2D</h2>
+        
+        <h3>2.1 Robot a 2 DOF Planare</h3>
+        <div class="interactive-section">
+            <h4>Visualizzazione Interattiva - Robot 2R</h4>
+            <canvas id="robot2D" width="600" height="400"></canvas>
+            <div class="controls">
+                <label>Lunghezza Link 1 (L1): <input type="range" id="l1Slider" min="50" max="150" value="100"> <span id="l1Value">100</span></label><br>
+                <label>Lunghezza Link 2 (L2): <input type="range" id="l2Slider" min="50" max="150" value="80"> <span id="l2Value">80</span></label><br>
+                <label>Target X: <input type="range" id="targetX" min="-200" max="200" value="120"> <span id="targetXValue">120</span></label><br>
+                <label>Target Y: <input type="range" id="targetY" min="-200" max="200" value="50"> <span id="targetYValue">50</span></label><br>
+                <button onclick="calculateInverseKinematics2D()">Calcola Cinematica Inversa</button>
+                <button onclick="toggleSolution()">Cambia Soluzione (Elbow Up/Down)</button>
+            </div>
+            <div id="results2D"></div>
+        </div>
+
+        <h3>2.2 Formule Matematiche per Robot 2R</h3>
+        <div class="math-formula">
+            <strong>Dati:</strong><br>
+            - Posizione target: (x, y)<br>
+            - Lunghezze dei link: L₁, L₂<br><br>
+            
+            <strong>Soluzione:</strong><br>
+            1. Calcola la distanza al target: r = √(x² + y²)<br>
+            2. Verifica raggiungibilità: |L₁ - L₂| ≤ r ≤ L₁ + L₂<br>
+            3. Calcola θ₂ (angolo del gomito):<br>
+               cos(θ₂) = (x² + y² - L₁² - L₂²) / (2·L₁·L₂)<br>
+               θ₂ = ±arccos(cos(θ₂))<br>
+            4. Calcola θ₁ (angolo della spalla):<br>
+               θ₁ = atan2(y, x) - atan2(L₂·sin(θ₂), L₁ + L₂·cos(θ₂))
+        </div>
+
+        <div class="algorithm-box">
+            <h4>Algoritmo per Robot 2R:</h4>
+            <pre>
+```
+
+function inverseKinematics2R(x, y, L1, L2):
+// Verifica raggiungibilità
+r = sqrt(x² + y²)
+if r > L1 + L2 or r < abs(L1 - L2):
+return “Irraggiungibile”
+
+```
+// Calcola θ2 (due soluzioni possibili)
+cos_theta2 = (x² + y² - L1² - L2²) / (2 * L1 * L2)
+theta2_1 = arccos(cos_theta2)    // Elbow down
+theta2_2 = -arccos(cos_theta2)   // Elbow up
+
+// Calcola θ1 per entrambe le soluzioni
+theta1_1 = atan2(y, x) - atan2(L2 * sin(theta2_1), L1 + L2 * cos(theta2_1))
+theta1_2 = atan2(y, x) - atan2(L2 * sin(theta2_2), L1 + L2 * cos(theta2_2))
+
+return [(theta1_1, theta2_1), (theta1_2, theta2_2)]
+            </pre>
+        </div>
+
+        <div class="section-divider"></div>
+
+        <h2>3. Catene Cinematiche Aperte in 3D</h2>
+        
+        <h3>3.1 Robot Anthropomorfo 6 DOF</h3>
+        <div class="interactive-section">
+            <h4>Visualizzazione 3D - Robot 6R</h4>
+            <canvas id="robot3D" width="600" height="400"></canvas>
+            <div class="controls">
+                <label>Target X: <input type="range" id="target3DX" min="-300" max="300" value="200"> <span id="target3DXValue">200</span></label><br>
+                <label>Target Y: <input type="range" id="target3DY" min="-300" max="300" value="100"> <span id="target3DYValue">100</span></label><br>
+                <label>Target Z: <input type="range" id="target3DZ" min="0" max="400" value="200"> <span id="target3DZValue">200</span></label><br>
+                <button onclick="calculateInverseKinematics3D()">Calcola Cinematica Inversa 3D</button>
+                <button onclick="rotateView()">Ruota Vista</button>
+            </div>
+            <div id="results3D"></div>
+        </div>
+
+        <h3>3.2 Approccio Geometrico per Robot 6R</h3>
+        <div class="math-formula">
+            <strong>Disaccoppiamento di posizione e orientamento:</strong><br><br>
+            1. <strong>Sottoproblema di posizione (primi 3 giunti):</strong><br>
+               - Determina θ₁, θ₂, θ₃ per raggiungere la posizione del polso<br>
+               - Posizione del polso: P_wrist = P_target - d₆ · R_target · [0, 0, 1]ᵀ<br><br>
+            
+            2. <strong>Sottoproblema di orientamento (ultimi 3 giunti):</strong><br>
+               - Determina θ₄, θ₅, θ₆ per raggiungere l'orientamento desiderato<br>
+               - Usa angoli di Eulero o matrice di rotazione
+        </div>
+
+        <div class="algorithm-box">
+            <h4>Algoritmo per Robot 6R (metodo geometrico):</h4>
+            <pre>
+```
+
+function inverseKinematics6R(T_target, DH_params):
+// 1. Estrai posizione e orientamento target
+P_target = T_target[0:3, 3]
+R_target = T_target[0:3, 0:3]
+
+```
+// 2. Calcola posizione del polso
+P_wrist = P_target - d6 * R_target * [0, 0, 1]
+
+// 3. Risolvi per i primi 3 giunti (posizione)
+theta1 = atan2(P_wrist.y, P_wrist.x)
+
+// Proiezione nel piano del braccio
+r = sqrt(P_wrist.x² + P_wrist.y²) - a1
+z = P_wrist.z - d1
+
+// Risolvi triangolo per θ2 e θ3 (come nel caso 2D)
+D = (r² + z² - a2² - a3²) / (2 * a2 * a3)
+theta3 = ±arccos(D)
+theta2 = atan2(z, r) - atan2(a3 * sin(theta3), a2 + a3 * cos(theta3))
+
+// 4. Calcola matrice di rotazione per i primi 3 giunti
+R_0_3 = rotationMatrix(theta1, theta2, theta3)
+
+// 5. Risolvi per gli ultimi 3 giunti (orientamento)
+R_3_6 = R_0_3.T * R_target
+
+// Estrai angoli di Eulero da R_3_6
+theta4, theta5, theta6 = eulerAnglesFromRotationMatrix(R_3_6)
+
+return [theta1, theta2, theta3, theta4, theta5, theta6]
+            </pre>
+        </div>
+
+        <div class="section-divider"></div>
+
+        <h2>4. Catene Cinematiche Chiuse</h2>
+        
+        <h3>4.1 Meccanismo a Quattro Barre (2D)</h3>
+        <div class="interactive-section">
+            <h4>Visualizzazione - Quadrilatero Articolato</h4>
+            <canvas id="fourBar" width="600" height="400"></canvas>
+            <div class="controls">
+                <label>Lunghezza a: <input type="range" id="linkA" min="50" max="120" value="80"> <span id="linkAValue">80</span></label><br>
+                <label>Lunghezza b: <input type="range" id="linkB" min="50" max="120" value="100"> <span id="linkBValue">100</span></label><br>
+                <label>Lunghezza c: <input type="range" id="linkC" min="50" max="120" value="90"> <span id="linkCValue">90</span></label><br>
+                <label>Lunghezza d (base): <input type="range" id="linkD" min="100" max="200" value="150"> <span id="linkDValue">150</span></label><br>
+                <label>Angolo θ₁: <input type="range" id="inputAngle" min="0" max="360" value="45"> <span id="inputAngleValue">45</span>°</label><br>
+                <button onclick="solveFourBar()">Risolvi Cinematica</button>
+            </div>
+            <div id="fourBarResults"></div>
+        </div>
+
+        <h3>4.2 Equazioni per Meccanismo a Quattro Barre</h3>
+        <div class="math-formula">
+            <strong>Equazione di chiusura vettoriale:</strong><br>
+            a·e^(iθ₁) + b·e^(iθ₂) = c·e^(iθ₃) + d<br><br>
+            
+            <strong>Separando parti reali e immaginarie:</strong><br>
+            a·cos(θ₁) + b·cos(θ₂) = c·cos(θ₃) + d<br>
+            a·sin(θ₁) + b·sin(θ₂) = c·sin(θ₃)<br><br>
+            
+            <strong>Soluzione per θ₂ dato θ₁:</strong><br>
+            K₁ = d - a·cos(θ₁)<br>
+            K₂ = -a·sin(θ₁)<br>
+            K₃ = (K₁² + K₂² - b² - c²) / (2·b·c)<br>
+            θ₃ = 2·atan2(±√(1-K₃²), 1+K₃)<br>
+            θ₂ = atan2(K₂, K₁) - atan2(c·sin(θ₃), b + c·cos(θ₃))
+        </div>
+
+        <h3>4.3 Catene Chiuse in 3D - Meccanismo Sferico</h3>
+        <div class="math-formula">
+            <strong>Equazioni per meccanismo sferico:</strong><br><br>
+            Tutti i giunti hanno assi che si intersecano in un punto comune.<br><br>
+            
+            <strong>Matrice di rotazione complessiva:</strong><br>
+            R_total = R₁(θ₁) · R₂(θ₂) · R₃(θ₃) · R₄(θ₄) = I<br><br>
+            
+            <strong>Vincolo di chiusura:</strong><br>
+            Det(R_total) = 1 e R_total · R_total^T = I
+        </div>
+
+        <div class="section-divider"></div>
+
+        <h2>5. Metodi Numerici</h2>
+
+        <h3>5.1 Metodo di Newton-Raphson</h3>
+        <div class="algorithm-box">
+            <h4>Algoritmo Newton-Raphson per cinematica inversa:</h4>
+            <pre>
+```
+
+function newtonRaphsonIK(target_pose, initial_guess, tolerance=1e-6):
+theta = initial_guess
+max_iterations = 100
+
+```
+for i in range(max_iterations):
+    // Calcola cinematica diretta
+    current_pose = forwardKinematics(theta)
+    
+    // Calcola errore
+    error = target_pose - current_pose
+    
+    // Verifica convergenza
+    if norm(error) < tolerance:
+        return theta, True
+    
+    // Calcola Jacobiano
+    J = computeJacobian(theta)
+    
+    // Aggiorna theta usando pseudo-inversa
+    delta_theta = pinv(J) * error
+    theta = theta + delta_theta
+    
+    // Verifica limiti articolari
+    theta = applyJointLimits(theta)
+
+return theta, False  // Non convergente
+            </pre>
+        </div>
+
+        <h3>5.2 Jacobiano e Singolarità</h3>
+        <div class="math-formula">
+            <strong>Jacobiano geometrico:</strong><br>
+            J = [J_v | J_ω] dove:<br>
+            - J_v: Jacobiano di velocità lineare<br>
+            - J_ω: Jacobiano di velocità angolare<br><br>
+            
+            <strong>Per giunto rotoidale i:</strong><br>
+            J_v,i = z_{i-1} × (p_e - p_{i-1})<br>
+            J_ω,i = z_{i-1}<br><br>
+            
+            <strong>Per giunto prismatico i:</strong><br>
+            J_v,i = z_{i-1}<br>
+            J_ω,i = 0
+        </div>
+
+        <div class="warning-box">
+            <strong>Singolarità:</strong> Configurazioni dove det(J) = 0 o J perde rango.<br>
+            In questi punti il robot perde DOF istantanei e la cinematica inversa può non avere soluzione unica.
+        </div>
+
+        <div class="section-divider"></div>
+
+        <h2>6. Strategie di Risoluzione</h2>
+
+        <h3>6.1 Selezione della Soluzione</h3>
+        <div class="example-box">
+            <h4>Criteri per scegliere tra soluzioni multiple:</h4>
+            <ul>
+                <li><strong>Minima distanza:</strong> Scegli la soluzione più vicina alla configurazione attuale</li>
+                <li><strong>Evitare singolarità:</strong> Evita configurazioni vicine a singolarità</li>
+                <li><strong>Limiti articolari:</strong> Rispetta i limiti fisici dei giunti</li>
+                <li><strong>Ostacoli:</strong> Evita collisioni con l'ambiente</li>
+            </ul>
+        </div>
+
+        <h3>6.2 Gestione della Ridondanza</h3>
+        <div class="algorithm-box">
+            <h4>Metodo della proiezione nel null-space:</h4>
+            <pre>
+```
+
+function redundantIK(target_pose, theta_current, secondary_objective):
+// Calcola Jacobiano principale
+J = computeJacobian(theta_current)
+
+```
+// Risolvi task primario
+error_primary = target_pose - forwardKinematics(theta_current)
+delta_theta_primary = pinv(J) * error_primary
+
+// Calcola proiezione nel null-space
+N = I - pinv(J) * J  // Proiettore null-space
+
+// Risolvi task secondario
+gradient_secondary = computeSecondaryGradient(secondary_objective, theta_current)
+delta_theta_secondary = N * gradient_secondary
+
+// Combina le soluzioni
+delta_theta_total = delta_theta_primary + alpha * delta_theta_secondary
+
+return theta_current + delta_theta_total
+            </pre>
+        </div>
+
+        <div class="section-divider"></div>
+
+        <h2>7. Considerazioni Pratiche</h2>
+
+        <div class="example-box">
+            <h4>Suggerimenti per l'implementazione:</h4>
+            <ul>
+                <li><strong>Inizializzazione:</strong> Usa una buona stima iniziale vicina alla soluzione attesa</li>
+                <li><strong>Damping:</strong> Aggiungi damping al metodo Newton-Raphson per migliorare la stabilità</li>
+                <li><strong>Limiti articolari:</strong> Implementa sempre controlli sui limiti dei giunti</li>
+                <li><strong>Controllo convergenza:</strong> Monitora sia l'errore di posizione che di orientamento</li>
+                <li><strong>Gestione fallimenti:</strong> Implementa strategie di fallback quando la convergenza fallisce</li>
+            </ul>
+        </div>
+
+        <div class="warning-box">
+            <strong>Problemi comuni:</strong>
+            <ul>
+                <li>Oscillazioni vicino alle singolarità</li>
+                <li>Convergenza lenta o fallimento</li>
+                <li>Violazione dei limiti articolari</li>
+                <li>Salti tra soluzioni multiple</li>
+            </ul>
+        </div>
+
+        <div class="section-divider"></div>
+
+        <h2>Conclusioni</h2>
+        <p>La cinematica inversa è un problema fondamentale in robotica che richiede una comprensione approfondita sia degli aspetti geometrici che numerici. La scelta del metodo dipende dalla struttura del robot, dai requisiti di accuratezza e dalle risorse computazionali disponibili.</p>
+        
+        <p>Per catene aperte, i metodi geometrici sono spesso preferibili quando applicabili, mentre per sistemi complessi o catene chiuse, i metodi numerici offrono maggiore flessibilità a costo di una maggiore complessità computazionale.</p>
+    </div>
+</div>
+
+<script>
+    // Variabili globali
+    let currentSolution = 0; // 0 = elbow down, 1 = elbow up
+    let viewAngle = 0;
+
+    // Funzioni per robot 2D
+    function drawRobot2D() {
+        const canvas = document.getElementById('robot2D');
+        const ctx = canvas.getContext('2d');
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+
+        // Pulisci canvas
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Disegna griglia
+        ctx.strokeStyle = '#f0f0f0';
+        ctx.lineWidth = 1;
+        for (let i = 0; i < canvas.width; i += 20) {
+            ctx.beginPath();
+            ctx.moveTo(i, 0);
+            ctx.lineTo(i, canvas.height);
+            ctx.stroke();
+        }
+        for (let i = 0; i < canvas.height; i += 20) {
+            ctx.beginPath();
+            ctx.moveTo(0, i);
+            ctx.lineTo(canvas.width, i);
+            ctx.stroke();
+        }
+
+        // Ottieni valori
+        const L1 = parseInt(document.getElementById('l1Slider').value);
+        const L2 = parseInt(document.getElementById('l2Slider').value);
+        const targetX = parseInt(document.getElementById('targetX').value);
+        const targetY = parseInt(document.getElementById('targetY').value);
+
+        // Calcola cinematica inversa
+        const result = inverseKinematics2R(targetX, targetY, L1, L2);
+
+        if (result.reachable) {
+            const solution = result.solutions[currentSolution];
+            const theta1 = solution.theta1;
+            const theta2 = solution.theta2;
+
+            // Calcola posizioni
+            const joint1X = centerX;
+            const joint1Y = centerY;
+            const joint2X = joint1X + L1 * Math.cos(theta1);
+            const joint2Y = joint1Y - L1 * Math.sin(theta1);
+            const endX = joint2X + L2 * Math.cos(theta1 + theta2);
+            const endY = joint2Y - L2 * Math.sin(theta1 + theta2);
+
+            // Disegna workspace (cerchio)
+            ctx.strokeStyle = '#e0e0e0';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, L1 + L2, 0, 2 * Math.PI);
+            ctx.stroke();
+            
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, Math.abs(L1 - L2), 0, 2 * Math.PI);
+            ctx.stroke();
+
+            // Disegna robot
+            ctx.strokeStyle = '#2196F3';
+            ctx.lineWidth = 4;
+            
+            // Link 1
+            ctx.beginPath();
+            ctx.moveTo(joint1X, joint1Y);
+            ctx.lineTo(joint2X, joint2Y);
+            ctx.stroke();
+
+            // Link 2
+            ctx.strokeStyle = '#FF9800';
+            ctx.beginPath();
+            ctx.moveTo(joint2X, joint2Y);
+            ctx.lineTo(endX, endY);
+            ctx.stroke();
+
+            // Giunti
+            ctx.fillStyle = '#1976D2';
+            ctx.beginPath();
+            ctx.arc(joint1X, joint1Y, 8, 0, 2 * Math.PI);
+            ctx.fill();
+
+            ctx.fillStyle = '#F57C00';
+            ctx.beginPath();
+            ctx.arc(joint2X, joint2Y, 6, 0, 2 * Math.PI);
+            ctx.fill();
+
+            // End effector
+            ctx.fillStyle = '#4CAF50';
+            ctx.beginPath();
+            ctx.arc(endX, endY, 6, 0, 2 * Math.PI);
+            ctx.fill();
+        }
+
+        // Disegna target
+        ctx.fillStyle = '#f44336';
+        ctx.beginPath();
+        ctx.arc(centerX + targetX, centerY - targetY, 8, 0, 2 * Math.PI);
+        ctx.fill();
+
+        // Aggiorna valori mostrati
+        document.getElementById('l1Value').textContent = L1;
+        document.getElementById('l2Value').textContent = L2;
+        document.getElementById('targetXValue').textContent = targetX;
+        document.getElementById('targetYValue').textContent = targetY;
+    }
+
+    function inverseKinematics2R(x, y, L1, L2) {
+        const r = Math.sqrt(x * x + y * y);
+        
+        // Verifica raggiungibilità
+        if (r > L1 + L2 || r < Math.abs(L1 - L2)) {
+            return { reachable: false, solutions: [] };
+        }
+
+        // Calcola theta2
+        const cosTheta2 = (x * x + y * y - L1 * L1 - L2 * L2) / (2 * L1 * L2);
+        const theta2_1 = Math.acos(cosTheta2);  // Elbow down
+        const theta2_2 = -Math.acos(cosTheta2); // Elbow up
+            // Calcola theta1 per entrambe le soluzioni
+            const theta1_1 = Math.atan2(y, x) - Math.atan2(L2 * Math.sin(theta2_1), L1 + L2 * Math.cos(theta2_1));
+            const theta1_2 = Math.atan2(y, x) - Math.atan2(L2 * Math.sin(theta2_2), L1 + L2 * Math.cos(theta2_2));
+        
+            return {
+                reachable: true,
+                solutions: [
+                    { theta1: theta1_1, theta2: theta2_1 },
+                    { theta1: theta1_2, theta2: theta2_2 }
+                ]
+            };
+        }
+        
+        function calculateInverseKinematics2D() {
+            const L1 = parseInt(document.getElementById('l1Slider').value);
+            const L2 = parseInt(document.getElementById('l2Slider').value);
+            const targetX = parseInt(document.getElementById('targetX').value);
+            const targetY = parseInt(document.getElementById('targetY').value);
+        
+            const result = inverseKinematics2R(targetX, targetY, L1, L2);
+            const resultsDiv = document.getElementById('results2D');
+        
+            if (result.reachable) {
+                let html = '<h4>Soluzioni trovate:</h4>';
+                result.solutions.forEach((sol, index) => {
+                    const theta1Deg = (sol.theta1 * 180 / Math.PI).toFixed(2);
+                    const theta2Deg = (sol.theta2 * 180 / Math.PI).toFixed(2);
+                    const config = index === 0 ? 'Elbow Down' : 'Elbow Up';
+                    html += `<p><strong>Soluzione  ():</strong><br>
+                             θ₁ = °<br>
+                             θ₂ = °</p>`;
+                });
+                resultsDiv.innerHTML = html;
+            } else {
+                resultsDiv.innerHTML = '<h4 style="color: red;">Target irraggiungibile!</h4>';
+            }
+            
+            drawRobot2D();
+        }
+        
+        function toggleSolution() {
+            currentSolution = 1 - currentSolution;
+            drawRobot2D();
+        }
+        
+        // Funzioni per robot 3D
+        function drawRobot3D() {
+            const canvas = document.getElementById('robot3D');
+            const ctx = canvas.getContext('2d');
+            
+            // Pulisci canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Parametri del robot 6R (semplificato per visualizzazione)
+            const L = [0, 100, 150, 120, 0, 50]; // Lunghezze dei link
+            const targetX = parseInt(document.getElementById('target3DX').value);
+            const targetY = parseInt(document.getElementById('target3DY').value);
+            const targetZ = parseInt(document.getElementById('target3DZ').value);
+            
+            // Centro del canvas
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            
+            // Proiezione isometrica semplificata
+            const scale = 0.8;
+            
+            // Disegna sistema di coordinate
+            drawCoordinateSystem(ctx, centerX, centerY, scale);
+            
+            // Calcola e disegna robot (configurazione approssimata)
+            const angles = approximateIK3D(targetX, targetY, targetZ);
+            drawRobot3DLinks(ctx, centerX, centerY, scale, angles, L);
+            
+            // Disegna target
+            const projTarget = project3D(targetX, targetY, targetZ, scale);
+            ctx.fillStyle = '#f44336';
+            ctx.beginPath();
+            ctx.arc(centerX + projTarget.x, centerY - projTarget.y, 8, 0, 2 * Math.PI);
+            ctx.fill();
+            
+            // Etichetta target
+            ctx.fillStyle = '#000';
+            ctx.font = '12px Arial';
+            ctx.fillText('Target', centerX + projTarget.x + 10, centerY - projTarget.y - 10);
+            
+            // Aggiorna valori mostrati
+            document.getElementById('target3DXValue').textContent = targetX;
+            document.getElementById('target3DYValue').textContent = targetY;
+            document.getElementById('target3DZValue').textContent = targetZ;
+        }
+        
+        function project3D(x, y, z, scale) {
+            // Proiezione isometrica
+            const angle = viewAngle * Math.PI / 180;
+            const cosA = Math.cos(angle);
+            const sinA = Math.sin(angle);
+            
+            const projX = (x * cosA - y * sinA) * scale;
+            const projY = (z - (x * sinA + y * cosA) * 0.5) * scale;
+            
+            return { x: projX, y: projY };
+        }
+        
+        function drawCoordinateSystem(ctx, centerX, centerY, scale) {
+            const axisLength = 80;
+            
+            // Asse X (rosso)
+            const xEnd = project3D(axisLength, 0, 0, scale);
+            ctx.strokeStyle = '#ff0000';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(centerX, centerY);
+            ctx.lineTo(centerX + xEnd.x, centerY - xEnd.y);
+            ctx.stroke();
+            ctx.fillStyle = '#ff0000';
+            ctx.font = '14px Arial';
+            ctx.fillText('X', centerX + xEnd.x + 5, centerY - xEnd.y);
+            
+            // Asse Y (verde)
+            const yEnd = project3D(0, axisLength, 0, scale);
+            ctx.strokeStyle = '#00ff00';
+            ctx.beginPath();
+            ctx.moveTo(centerX, centerY);
+            ctx.lineTo(centerX + yEnd.x, centerY - yEnd.y);
+            ctx.stroke();
+            ctx.fillStyle = '#00ff00';
+            ctx.fillText('Y', centerX + yEnd.x + 5, centerY - yEnd.y);
+            
+            // Asse Z (blu)
+            const zEnd = project3D(0, 0, axisLength, scale);
+            ctx.strokeStyle = '#0000ff';
+            ctx.beginPath();
+            ctx.moveTo(centerX, centerY);
+            ctx.lineTo(centerX + zEnd.x, centerY - zEnd.y);
+            ctx.stroke();
+            ctx.fillStyle = '#0000ff';
+            ctx.fillText('Z', centerX + zEnd.x + 5, centerY - zEnd.y);
+        }
+        
+        function drawRobot3DLinks(ctx, centerX, centerY, scale, angles, L) {
+            // Posizioni dei giunti (coordinate 3D)
+            let positions = [{x: 0, y: 0, z: 0}]; // Base
+            
+            // Calcola posizioni dei giunti (semplificato)
+            let x = 0, y = 0, z = L[0];
+            positions.push({x, y, z});
+            
+            // Giunto 1 (rotazione attorno a Z)
+            x += L[1] * Math.cos(angles[0]);
+            y += L[1] * Math.sin(angles[0]);
+            positions.push({x, y, z});
+            
+            // Giunto 2 (nel piano XZ)
+            x += L[2] * Math.cos(angles[0]) * Math.cos(angles[1]);
+            y += L[2] * Math.sin(angles[0]) * Math.cos(angles[1]);
+            z += L[2] * Math.sin(angles[1]);
+            positions.push({x, y, z});
+            
+            // Giunto 3
+            x += L[3] * Math.cos(angles[0]) * Math.cos(angles[1] + angles[2]);
+            y += L[3] * Math.sin(angles[0]) * Math.cos(angles[1] + angles[2]);
+            z += L[3] * Math.sin(angles[1] + angles[2]);
+            positions.push({x, y, z});
+            
+            // End effector
+            x += L[5] * Math.cos(angles[0]) * Math.cos(angles[1] + angles[2]);
+            y += L[5] * Math.sin(angles[0]) * Math.cos(angles[1] + angles[2]);
+            z += L[5] * Math.sin(angles[1] + angles[2]);
+            positions.push({x, y, z});
+            
+            // Disegna i link
+            const colors = ['#2196F3', '#FF9800', '#4CAF50', '#9C27B0', '#FF5722'];
+            
+            for (let i = 0; i < positions.length - 1; i++) {
+                const start = project3D(positions[i].x, positions[i].y, positions[i].z, scale);
+                const end = project3D(positions[i + 1].x, positions[i + 1].y, positions[i + 1].z, scale);
+                
+                ctx.strokeStyle = colors[i % colors.length];
+                ctx.lineWidth = 4;
+                ctx.beginPath();
+                ctx.moveTo(centerX + start.x, centerY - start.y);
+                ctx.lineTo(centerX + end.x, centerY - end.y);
+                ctx.stroke();
+                
+                // Disegna giunti
+                ctx.fillStyle = colors[i % colors.length];
+                ctx.beginPath();
+                ctx.arc(centerX + start.x, centerY - start.y, 6, 0, 2 * Math.PI);
+                ctx.fill();
+            }
+            
+            // End effector
+            const lastPos = positions[positions.length - 1];
+            const endProj = project3D(lastPos.x, lastPos.y, lastPos.z, scale);
+            ctx.fillStyle = '#f44336';
+            ctx.beginPath();
+            ctx.arc(centerX + endProj.x, centerY - endProj.y, 8, 0, 2 * Math.PI);
+            ctx.fill();
+        }
+        
+        function approximateIK3D(x, y, z) {
+            // Cinematica inversa approssimata per visualizzazione
+            const theta1 = Math.atan2(y, x);
+            const r = Math.sqrt(x*x + y*y);
+            const theta2 = Math.atan2(z - 100, r - 100);
+            const theta3 = -theta2 * 0.5;
+            
+            return [theta1, theta2, theta3, 0, 0, 0];
+        }
+        
+        function calculateInverseKinematics3D() {
+            const targetX = parseInt(document.getElementById('target3DX').value);
+            const targetY = parseInt(document.getElementById('target3DY').value);
+            const targetZ = parseInt(document.getElementById('target3DZ').value);
+            
+            const angles = approximateIK3D(targetX, targetY, targetZ);
+            const resultsDiv = document.getElementById('results3D');
+            
+            let html = '<h4>Angoli calcolati (approssimati):</h4>';
+            angles.forEach((angle, index) => {
+                const angleDeg = (angle * 180 / Math.PI).toFixed(2);
+                html += `<p>θ = °</p>`;
+            });
+            
+            resultsDiv.innerHTML = html;
+            drawRobot3D();
+        }
+        
+        function rotateView() {
+            viewAngle += 30;
+            if (viewAngle >= 360) viewAngle = 0;
+            drawRobot3D();
+        }
+        
+        // Funzioni per meccanismo a quattro barre
+        function drawFourBar() {
+            const canvas = document.getElementById('fourBar');
+            const ctx = canvas.getContext('2d');
+            
+            // Pulisci canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Ottieni parametri
+            const a = parseInt(document.getElementById('linkA').value);
+            const b = parseInt(document.getElementById('linkB').value);
+            const c = parseInt(document.getElementById('linkC').value);
+            const d = parseInt(document.getElementById('linkD').value);
+            const theta1 = parseInt(document.getElementById('inputAngle').value) * Math.PI / 180;
+            
+            // Centro e offset
+            const centerX = canvas.width / 2 - d / 2;
+            const centerY = canvas.height / 2;
+            
+            // Risolvi cinematica
+            const result = solveFourBarMechanism(a, b, c, d, theta1);
+            
+            if (result.valid) {
+                // Posizioni dei giunti
+                const A = { x: centerX, y: centerY };
+                const B = { 
+                    x: centerX + a * Math.cos(theta1), 
+                    y: centerY - a * Math.sin(theta1) 
+                };
+                const C = { 
+                    x: centerX + d + c * Math.cos(result.theta3), 
+                    y: centerY - c * Math.sin(result.theta3) 
+                };
+                const D = { x: centerX + d, y: centerY };
+                
+                // Disegna base (link d)
+                ctx.strokeStyle = '#666';
+                ctx.lineWidth = 6;
+                ctx.beginPath();
+                ctx.moveTo(A.x, A.y);
+                ctx.lineTo(D.x, D.y);
+                ctx.stroke();
+                
+                // Disegna link a
+                ctx.strokeStyle = '#2196F3';
+                ctx.lineWidth = 4;
+                ctx.beginPath();
+                ctx.moveTo(A.x, A.y);
+                ctx.lineTo(B.x, B.y);
+                ctx.stroke();
+                
+                // Disegna link b
+                ctx.strokeStyle = '#FF9800';
+                ctx.beginPath();
+                ctx.moveTo(B.x, B.y);
+                ctx.lineTo(C.x, C.y);
+                ctx.stroke();
+                
+                // Disegna link c
+                ctx.strokeStyle = '#4CAF50';
+                ctx.beginPath();
+                ctx.moveTo(C.x, C.y);
+                ctx.lineTo(D.x, D.y);
+                ctx.stroke();
+                
+                // Disegna giunti
+                const joints = [A, B, C, D];
+                const colors = ['#1976D2', '#F57C00', '#388E3C', '#5D4037'];
+                
+                joints.forEach((joint, index) => {
+                    ctx.fillStyle = colors[index];
+                    ctx.beginPath();
+                    ctx.arc(joint.x, joint.y, 8, 0, 2 * Math.PI);
+                    ctx.fill();
+                });
+                
+                // Traiettoria del punto B
+                drawTrajectory(ctx, centerX, centerY, a, d);
+            }
+            
+            // Aggiorna valori mostrati
+            document.getElementById('linkAValue').textContent = a;
+            document.getElementById('linkBValue').textContent = b;
+            document.getElementById('linkCValue').textContent = c;
+            document.getElementById('linkDValue').textContent = d;
+            document.getElementById('inputAngleValue').textContent = parseInt(document.getElementById('inputAngle').value);
+        }
+        
+        function solveFourBarMechanism(a, b, c, d, theta1) {
+            // Verifica condizione di Grashof
+            const S = Math.min(a, b, c, d);
+            const L = Math.max(a, b, c, d);
+            const P = a + b + c + d - S - L;
+            const Q = a + b + c + d - S - L - P;
+            
+            if (S + L > P + Q) {
+                return { valid: false, message: "Meccanismo non assemblabile (violazione condizione di Grashof)" };
+            }
+            
+            // Calcola posizione del punto B
+            const Bx = a * Math.cos(theta1);
+            const By = a * Math.sin(theta1);
+            
+            // Risolvi per theta3
+            const K1 = d - Bx;
+            const K2 = -By;
+            const K3 = (K1*K1 + K2*K2 - b*b - c*c) / (2*b*c);
+            
+            if (Math.abs(K3) > 1) {
+                return { valid: false, message: "Configurazione irraggiungibile" };
+            }
+            
+            // Due soluzioni possibili per theta3
+            const theta3_1 = 2 * Math.atan2(Math.sqrt(1 - K3*K3), 1 + K3);
+            const theta3_2 = 2 * Math.atan2(-Math.sqrt(1 - K3*K3), 1 + K3);
+            
+            // Scegli la prima soluzione (o implementa logica di selezione)
+            const theta3 = theta3_1;
+            
+            // Calcola theta2
+            const theta2 = Math.atan2(K2, K1) - Math.atan2(c * Math.sin(theta3), b + c * Math.cos(theta3));
+            
+            return {
+                valid: true,
+                theta2: theta2,
+                theta3: theta3,
+                theta4: Math.atan2(c * Math.sin(theta3), d - c * Math.cos(theta3))
+            };
+        }
+        
+        function drawTrajectory(ctx, centerX, centerY, a, d) {
+            ctx.strokeStyle = 'rgba(255, 0, 0, 0.3)';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, a, 0, 2 * Math.PI);
+            ctx.stroke();
+            ctx.setLineDash([]);
+        }
+        
+        function solveFourBar() {
+            const a = parseInt(document.getElementById('linkA').value);
+            const b = parseInt(document.getElementById('linkB').value);
+            const c = parseInt(document.getElementById('linkC').value);
+            const d = parseInt(document.getElementById('linkD').value);
+            const theta1 = parseInt(document.getElementById('inputAngle').value) * Math.PI / 180;
+            
+            const result = solveFourBarMechanism(a, b, c, d, theta1);
+            const resultsDiv = document.getElementById('fourBarResults');
+            
+            if (result.valid) {
+                const theta2Deg = (result.theta2 * 180 / Math.PI).toFixed(2);
+                const theta3Deg = (result.theta3 * 180 / Math.PI).toFixed(2);
+                const theta4Deg = (result.theta4 * 180 / Math.PI).toFixed(2);
+                
+                resultsDiv.innerHTML = `
+                    <h4>Soluzione trovata:</h4>
+                    <p>θ₂ = °</p>
+                    <p>θ₃ = °</p>
+                    <p>θ₄ = °</p>
+                    <p><strong>Velocità angolari (se ω₁ = 1 rad/s):</strong></p>
+                    <p>ω₂ =  rad/s</p>
+                    <p>ω₃ =  rad/s</p>
+                `;
+            } else {
+                resultsDiv.innerHTML = `<h4 style="color: red;"></h4>`;
+            }
+            
+            drawFourBar();
+        }
+        
+        function calculateAngularVelocity(result, joint) {
+            // Calcolo semplificato delle velocità angolari
+            const omega1 = 1; // rad/s
+            
+            if (joint === 2) {
+                // Formula per ω₂ nel meccanismo a quattro barre
+                return -omega1 * Math.sin(result.theta3) / Math.sin(result.theta2 - result.theta3);
+            } else if (joint === 3) {
+                // Formula per ω₃
+                return omega1 * Math.sin(result.theta2) / Math.sin(result.theta2 - result.theta3);
+            }
+            
+            return 0;
+        }
+        
+        // Event listeners per gli slider
+        document.getElementById('l1Slider').addEventListener('input', drawRobot2D);
+        document.getElementById('l2Slider').addEventListener('input', drawRobot2D);
+        document.getElementById('targetX').addEventListener('input', drawRobot2D);
+        document.getElementById('targetY').addEventListener('input', drawRobot2D);
+        
+        document.getElementById('target3DX').addEventListener('input', drawRobot3D);
+        document.getElementById('target3DY').addEventListener('input', drawRobot3D);
+        document.getElementById('target3DZ').addEventListener('input', drawRobot3D);
+        
+        document.getElementById('linkA').addEventListener('input', drawFourBar);
+        document.getElementById('linkB').addEventListener('input', drawFourBar);
+        document.getElementById('linkC').addEventListener('input', drawFourBar);
+        document.getElementById('linkD').addEventListener('input', drawFourBar);
+        document.getElementById('inputAngle').addEventListener('input', drawFourBar);
+        
+        // Inizializzazione
+        window.addEventListener('load', () => {
+            drawRobot2D();
+            drawRobot3D();
+            drawFourBar();
+        });
+        
+        // Funzioni di utilità per analisi avanzate
+        function dampedLeastSquares(J, error, lambda = 0.01) {
+            // Metodo Damped Least Squares per evitare singolarità
+            const JT = transposeMatrix(J);
+            const JJT = multiplyMatrices(J, JT);
+            const identity = createIdentityMatrix(JJT.length);
+            const dampedMatrix = addMatrices(JJT, multiplyMatrixByScalar(identity, lambda * lambda));
+            const inverse = invertMatrix(dampedMatrix);
+            const pseudoInverse = multiplyMatrices(JT, inverse);
+            
+            return multiplyMatrixByVector(pseudoInverse, error);
+        }
+        
+        function createIdentityMatrix(size) {
+            const matrix = [];
+            for (let i = 0; i < size; i++) {
+                matrix[i] = [];
+                for (let j = 0; j < size; j++) {
+                    matrix[i][j] = i === j ? 1 : 0;
+                }
+            }
+            return matrix;
+        }
+        
+        function transposeMatrix(matrix) {
+            const rows = matrix.length;
+            const cols = matrix[0].length;
+            const transposed = [];
+            
+            for (let j = 0; j < cols; j++) {
+                transposed[j] = [];
+                for (let i = 0; i < rows; i++) {
+                    transposed[j][i] = matrix[i][j];
+                }
+            }
+            
+            return transposed;
+        }
+        
+        function multiplyMatrices(A, B) {
+            const rowsA = A.length;
+            const colsA = A[0].length;
+            const colsB = B[0].length;
+            const result = [];
+            
+            for (let i = 0; i < rowsA; i++) {
+                result[i] = [];
+                for (let j = 0; j < colsB; j++) {
+                    result[i][j] = 0;
+                    for (let k = 0; k < colsA; k++) {
+                        result[i][j] += A[i][k] * B[k][j];
+                    }
+                }
+            }
+            
+            return result;
+        }
+        
+        function addMatrices(A, B) {
+            const rows = A.length;
+            const cols = A[0].length;
+            const result = [];
+            
+            for (let i = 0; i < rows; i++) {
+                result[i] = [];
+                for (let j = 0; j < cols; j++) {
+                    result[i][j] = A[i][j] + B[i][j];
+                }
+            }
+            
+            return result;
+        }
+        
+        function multiplyMatrixByScalar(matrix, scalar) {
+            return matrix.map(row => row.map(element => element * scalar));
+        }
+        
+        function multiplyMatrixByVector(matrix, vector) {
+            return matrix.map(row => 
+                row.reduce((sum, element, index) => sum + element * vector[index], 0)
+            );
+        }
+        
+        function invertMatrix(matrix) {
+            // Implementazione semplificata per matrici piccole
+            const n = matrix.length;
+            const identity = createIdentityMatrix(n);
+            const augmented = matrix.map((row, i) => [...row, ...identity[i]]);
+            
+            // Eliminazione di Gauss-Jordan
+            for (let i = 0; i < n; i++) {
+                // Trova il pivot
+                let maxRow = i;
+                for (let k = i + 1; k < n; k++) {
+                    if (Math.abs(augmented[k][i]) > Math.abs(augmented[maxRow][i])) {
+                        maxRow = k;
+                    }
+                }
+                
+                // Scambia righe
+                [augmented[i], augmented[maxRow]] = [augmented[maxRow], augmented[i]];
+                
+                // Normalizza la riga pivot
+                const pivot = augmented[i][i];
+                if (Math.abs(pivot) < 1e-10) {
+                    throw new Error("Matrice singolare");
+                }
+                
+                for (let j = 0; j < 2 * n; j++) {
+                    augmented[i][j] /= pivot;
+                }
+                
+                // Elimina colonna
+                for (let k = 0; k < n; k++) {
+                    if (k !== i) {
+                        const factor = augmented[k][i];
+                        for (let j = 0; j < 2 * n; j++) {
+                            augmented[k][j] -= factor * augmented[i][j];
+                        }
+                    }
+                }
+            }
+            
+            // Estrai la matrice inversa
+            return augmented.map(row => row.slice(n));
+        }
+        
+        // Funzione per analisi del workspace
+        function analyzeWorkspace(L1, L2) {
+            const workspace = {
+                outerRadius: L1 + L2,
+                innerRadius: Math.abs(L1 - L2),
+                area: Math.PI * ((L1 + L2) * (L1 + L2) - (L1 - L2) * (L1 - L2)),
+                dexterityMeasure: calculateDexterityMeasure(L1, L2)
+            };
+            
+            return workspace;
+        }
+        
+        function calculateDexterityMeasure(L1, L2) {
+            // Misura di destrezza basata sulla condizione dei giunti
+            const configurations = [];
+            const numSamples = 36;
+            
+            for (let i = 0; i < numSamples; i++) {
+                const theta1 = (i * 2 * Math.PI) / numSamples;
+                for (let j = 0; j < numSamples; j++) {
+                    const theta2 = (j * 2 * Math.PI) / numSamples;
+                    
+                    // Calcola posizione end-effector
+                    const x = L1 * Math.cos(theta1) + L2 * Math.cos(theta1 + theta2);
+                    const y = L1 * Math.sin(theta1) + L2 * Math.sin(theta1 + theta2);
+                    
+                    // Calcola Jacobiano
+                    const J = [
+                        [-L1 * Math.sin(theta1) - L2 * Math.sin(theta1 + theta2), -L2 * Math.sin(theta1 + theta2)],
+                        [L1 * Math.cos(theta1) + L2 * Math.cos(theta1 + theta2), L2 * Math.cos(theta1 + theta2)]
+                    ];
+                    
+                    // Calcola numero di condizione
+                    const det = J[0][0] * J[1][1] - J[0][1] * J[1][0];
+                    
+                    if (Math.abs(det) > 1e-6) {
+                        configurations.push({
+                            x: x,
+                            y: y,
+                            manipulability: Math.abs(det),
+                            conditionNumber: calculateConditionNumber(J)
+                        });
+                    }
+                }
+            }
+            
+            return configurations;
+        }
+        
+        function calculateConditionNumber(J) {
+            // Calcolo approssimato del numero di condizione
+            const JT = transposeMatrix(J);
+            const JTJ = multiplyMatrices(JT, J);
+            
+            // Autovalori approssimati per matrice 2x2
+            const trace = JTJ[0][0] + JTJ[1][1];
+            const det = JTJ[0][0] * JTJ[1][1] - JTJ[0][1] * JTJ[1][0];
+            
+            const lambda1 = (trace + Math.sqrt(trace * trace - 4 * det)) / 2;
+            const lambda2 = (trace - Math.sqrt(trace * trace - 4 * det)) / 2;
+            
+            return lambda1 / lambda2;
+        }
+        ```
+        
